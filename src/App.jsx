@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef} from 'react'
+import './App.css'
 
 function App() {
   const [games, setGames] = useState([])
@@ -42,40 +43,83 @@ function App() {
 
   const selectedGame = games.find(game => game.id === selectedGameId)
 
-  return (
-    <div>
-      {/* Tabs */}
-      <div>
-        {games.map(game => (
-          <button key={game.id} onClick={() => setSelectedGameId(game.id)}>
-            {game.shortName}
-          </button>
-        ))}
-      </div>
-
-      {/* Selected Game Score */}
-      {selectedGame && (() => {
-        const competition = selectedGame.competitions[0]
-        const home = competition.competitors.find(c => c.homeAway === 'home')
-        const away = competition.competitors.find(c => c.homeAway === 'away')
-        return (
-          <div>
-            <p>{competition.status.type.description}</p>
-            <p>{away.team.location} {away.score} @ {home.team.location} {home.score}</p>
-          </div>
-        )
-      })()}
-
-      {/* Play by Play */}
-      <div>
-        {plays.slice().reverse().slice(0, 1).map((play, index) => (
-          <div key={index}>
-            <p>{play.clock?.displayValue} - {play.period?.number}Q | {play.text}</p>
-          </div>
-        ))}
-      </div>
+return (
+  <div className="sb">
+    <div className="tabs">
+      {games.map(game => (
+        <button
+          key={game.id}
+          className={`tab ${game.id === selectedGameId ? 'active' : ''}`}
+          onClick={() => setSelectedGameId(game.id)}
+        >
+          {game.shortName}
+        </button>
+      ))}
     </div>
-  )
+
+    {selectedGame && (() => {
+      const competition = selectedGame.competitions[0]
+      const home = competition.competitors.find(c => c.homeAway === 'home')
+      const away = competition.competitors.find(c => c.homeAway === 'away')
+      const status = competition.status.type.description
+      const isLive = status === 'In Progress'
+      const isFinal = status === 'Final'
+      const scoreSize = (score) => parseInt(score) >= 100 ? '34px' : '38px'
+      const formatTime = (dateStr) => {
+        const date = new Date(dateStr)
+        return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+      }
+
+      return (
+        <>
+          <div className="scoreboard">
+            <div className="status-row">
+              {isLive && <span className="live-dot"></span>}
+              <span className={isLive ? 'status-live' : isFinal ? 'status-final' : 'status-scheduled'}>
+                {isLive ? `Live · Q${competition.status.period} ${competition.status.displayClock}` 
+                : isFinal ? 'Final'
+                : `Scheduled · ${formatTime(competition.date)}`}
+              </span>
+            </div>
+            <div className="teams">
+              <div className="team">
+                <div className="team-logo">
+                  <img src={`https://a.espncdn.com/i/teamlogos/nba/500/${away.team.abbreviation.toLowerCase()}.png`} alt={away.team.name} />
+                </div>
+                <div className="team-info">
+                  <span className="team-name">{away.team.abbreviation}</span>
+                </div>
+              </div>
+              <div className="scores">
+                <span className={`team-score ${home.winner ? 'dim' : ''}`} style={{fontSize: scoreSize(Math.max(home.score, away.score))}}>{away.score}</span>
+                <span className="at">@</span>
+                <span className={`team-score ${away.winner ? 'dim' : ''}`} style={{fontSize: scoreSize(Math.max(home.score, away.score))}}>{home.score}</span>
+              </div>
+              <div className="team team-right">
+                <div className="team-logo">
+                  <img src={`https://a.espncdn.com/i/teamlogos/nba/500/${home.team.abbreviation.toLowerCase()}.png`} alt={home.team.name} />
+                </div>
+                <div className="team-info">
+                  <span className="team-name">{home.team.abbreviation}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="plays">
+            <div className="plays-hdr">Play by play</div>
+            {plays.slice().reverse().slice(0, 1).map((play, index) => (
+              <div key={index} className="play">
+                <span className="play-time">{play.clock?.displayValue} Q{play.period?.number}</span>
+                <span className="play-text">{play.text}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )
+    })()}
+  </div>
+)
 }
 
 export default App

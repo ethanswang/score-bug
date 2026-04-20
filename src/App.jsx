@@ -45,16 +45,20 @@ function App() {
 
 return (
   <div className="sb">
-    <div className="tabs">
-      {games.map(game => (
-        <button
-          key={game.id}
-          className={`tab ${game.id === selectedGameId ? 'active' : ''}`}
-          onClick={() => setSelectedGameId(game.id)}
-        >
-          {game.shortName}
-        </button>
-      ))}
+    <div className="titlebar">
+      <div className="drag-handle">⠿</div>
+      <div className="tabs">
+        {games.map(game => (
+          <button
+            key={game.id}
+            className={`tab ${game.id === selectedGameId ? 'active' : ''}`}
+            onClick={() => setSelectedGameId(game.id)}
+          >
+            {game.shortName}
+          </button>
+        ))}
+      </div>
+      <button className="close-btn" onClick={() => window.electronAPI.closeWindow()}>✕</button>
     </div>
 
     {selectedGame && (() => {
@@ -64,7 +68,7 @@ return (
       const status = competition.status.type.description
       const isLive = status === 'In Progress'
       const isFinal = status === 'Final'
-      const scoreSize = (score) => parseInt(score) >= 100 ? '34px' : '38px'
+      const scoreSize = (score) => parseInt(score) >= 100 ? '28px' : '28px'
       const formatTime = (dateStr) => {
         const date = new Date(dateStr)
         return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
@@ -73,14 +77,6 @@ return (
       return (
         <>
           <div className="scoreboard">
-            <div className="status-row">
-              {isLive && <span className="live-dot"></span>}
-              <span className={isLive ? 'status-live' : isFinal ? 'status-final' : 'status-scheduled'}>
-                {isLive ? `Live · Q${competition.status.period} ${competition.status.displayClock}` 
-                : isFinal ? 'Final'
-                : `Scheduled · ${formatTime(competition.date)}`}
-              </span>
-            </div>
             <div className="teams">
               <div className="team">
                 <div className="team-logo">
@@ -92,7 +88,13 @@ return (
               </div>
               <div className="scores">
                 <span className={`team-score ${home.winner ? 'dim' : ''}`} style={{fontSize: scoreSize(Math.max(home.score, away.score))}}>{away.score}</span>
-                <span className="at">@</span>
+                <div className="status-center">
+                  <span className={isLive ? 'status-live' : isFinal ? 'status-final' : 'status-scheduled'}>
+                    {isLive ? `Q${competition.status.period} ${competition.status.displayClock}`
+                    : isFinal ? 'Final'
+                    : formatTime(competition.date)}
+                  </span>
+                </div>
                 <span className={`team-score ${away.winner ? 'dim' : ''}`} style={{fontSize: scoreSize(Math.max(home.score, away.score))}}>{home.score}</span>
               </div>
               <div className="team team-right">
@@ -107,7 +109,6 @@ return (
           </div>
 
           <div className="plays">
-            <div className="plays-hdr">Play by play</div>
             {plays.slice().reverse().slice(0, 1).map((play, index) => (
               <div key={index} className="play">
                 <span className="play-time">{play.clock?.displayValue} Q{play.period?.number}</span>

@@ -62,9 +62,9 @@ return (
       <button className={`toggle-btn ${showPlays ? '' : 'flipped'}`} onClick={() => {
         if (showPlays) {
           setShowPlays(false)
-          setTimeout(() => window.electronAPI.resizeWindow(72), 180)
+          setTimeout(() => window.electronAPI?.resizeWindow(72), 180)
         } else {
-          window.electronAPI.resizeWindow(110)
+          window.electronAPI?.resizeWindow(110)
           setShowPlays(true)
         }
       }}>▾</button>

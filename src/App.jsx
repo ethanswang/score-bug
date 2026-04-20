@@ -6,6 +6,7 @@ function App() {
   const [selectedGameId, setSelectedGameId] = useState(null)
   const hasSelected = useRef(false)
   const [plays, setPlays] = useState([])
+  const [showPlays, setShowPlays] = useState(true)
 
   useEffect(() => {
     const fetchScores = () => {
@@ -58,6 +59,15 @@ return (
           </button>
         ))}
       </div>
+      <button className={`toggle-btn ${showPlays ? '' : 'flipped'}`} onClick={() => {
+        if (showPlays) {
+          setShowPlays(false)
+          setTimeout(() => window.electronAPI.resizeWindow(72), 180)
+        } else {
+          window.electronAPI.resizeWindow(110)
+          setShowPlays(true)
+        }
+      }}>▾</button>
       <button className="close-btn" onClick={() => window.electronAPI.closeWindow()}>✕</button>
     </div>
 
@@ -68,7 +78,6 @@ return (
       const status = competition.status.type.description
       const isLive = status === 'In Progress'
       const isFinal = status === 'Final'
-      const scoreSize = (score) => parseInt(score) >= 100 ? '28px' : '28px'
       const formatTime = (dateStr) => {
         const date = new Date(dateStr)
         return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
@@ -87,7 +96,7 @@ return (
                 </div>
               </div>
               <div className="scores">
-                <span className={`team-score ${home.winner ? 'dim' : ''}`} style={{fontSize: scoreSize(Math.max(home.score, away.score))}}>{away.score}</span>
+                <span className={`team-score ${home.winner ? 'dim' : ''}`}>{away.score}</span>
                 <div className="status-center">
                   <span className={isLive ? 'status-live' : isFinal ? 'status-final' : 'status-scheduled'}>
                     {isLive ? `Q${competition.status.period} ${competition.status.displayClock}`
@@ -95,7 +104,7 @@ return (
                     : formatTime(competition.date)}
                   </span>
                 </div>
-                <span className={`team-score ${away.winner ? 'dim' : ''}`} style={{fontSize: scoreSize(Math.max(home.score, away.score))}}>{home.score}</span>
+                <span className={`team-score ${away.winner ? 'dim' : ''}`}>{home.score}</span>
               </div>
               <div className="team team-right">
                 <div className="team-logo">
@@ -108,7 +117,7 @@ return (
             </div>
           </div>
 
-          <div className="plays">
+          <div className={`plays ${showPlays ? 'open' : ''}`}>
             {plays.slice().reverse().slice(0, 1).map((play, index) => (
               <div key={index} className="play">
                 <span className="play-time">{play.clock?.displayValue} Q{play.period?.number}</span>
